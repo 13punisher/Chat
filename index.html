@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat Exporter</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --chat-radius: 28px;
+      --bubble-radius: 28px;
+      --font-sz: 20px;
+      --gap: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: #fff;
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    .app-root {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+      gap: 15px;
+    }
+
+    .chat-box {
+      width: 100%;
+      max-width: 600px;
+      background: var(--bg);
+      border-radius: var(--chat-radius);
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+      word-wrap: break-word;
+    }
+
+    .message-bubble {
+      padding: 12px 20px;
+      border-radius: var(--bubble-radius);
+      max-width: 80%;
+      font-size: var(--font-sz);
+      line-height: 1.25;
+      white-space: pre-wrap;
+      display: inline-block;
+    }
+
+    .sender {
+      align-self: flex-end;
+      text-align: right;
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      background-image: linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0));
+    }
+
+    .receiver {
+      align-self: flex-start;
+      text-align: left;
+      background: rgba(255,255,255,0.02);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: inset 0 -2px 0 rgba(0,0,0,0.35);
+    }
+
+    .controls {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .controls input {
+      flex: 1 1 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      font-size: 15px;
+    }
+
+    .controls select, .controls button {
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .controls button {
+      background: #2f80ed;
+      color: white;
+    }
+
+    .bottom-actions {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .action-btn {
+      padding: 10px 14px;
+      background: #00c853;
+      color: white;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      flex: 1 1 45%;
+    }
+
+    .menu-wrapper {
+      position: relative;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: 40px;
+      right: 0;
+      background: #111;
+      padding: 12px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 2000;
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .dropdown-menu label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #fff;
+      font-size: 13px;
+    }
+
+    @media (max-width: 500px) {
+      .chat-box {
+        padding: 20px 10px;
+      }
+      .controls input {
+        flex: 1 1 100%;
+      }
+      .action-btn {
+        flex: 1 1 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React + ReactDOM + html2canvas -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <script type="text/javascript">
+    const { useState, useEffect, useRef } = React;
+
+    function App() {
+      const [messages, setMessages] = useState([]);
+      const [input, setInput] = useState("");
+      const [sender, setSender] = useState("sender");
+      const [senderColor, setSenderColor] = useState("rgba(255,255,255,0.12)");
+      const [receiverColor, setReceiverColor] = useState("rgba(255,255,255,0.02)");
+      const [senderTextColor, setSenderTextColor] = useState("#ffffff");
+      const [receiverTextColor, setReceiverTextColor] = useState("#ffffff");
+      const [menuOpen, setMenuOpen] = useState(false);
+      const chatRef = useRef(null);
+
+      const addMessage = () => {
+        if (!input.trim()) return;
+        setMessages(prev => [...prev, { text: input.trim(), type: sender }]);
+        setInput("");
+      };
+
+      const deleteMessage = idx => setMessages(prev => prev.filter((_, i) => i !== idx));
+      const clearChat = () => setMessages([]);
+
+      useEffect(() => {
+        if(chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
+      }, [messages]);
+
+      const downloadChat = async () => {
+        const chatBox = chatRef.current;
+        if (!chatBox) return;
+        const chatWidth = chatBox.offsetWidth;
+        const chatHeight = chatBox.scrollHeight;
+        const wrapper = document.createElement("div");
+        wrapper.style.position = "absolute";
+        wrapper.style.top = "-99999px";
+        wrapper.style.left = "-99999px";
+        wrapper.style.width = chatWidth + "px";
+        wrapper.style.height = chatHeight + "px";
+        wrapper.style.background = "black";
+        wrapper.style.overflow = "visible";
+
+        const clone = chatBox.cloneNode(true);
+        clone.style.width = chatWidth + "px";
+        clone.style.overflow = "visible";
+        wrapper.appendChild(clone);
+        document.body.appendChild(wrapper);
+
+        try {
+          const SCALE = 4;
+          const canvas = await html2canvas(wrapper, {
+            width: chatWidth,
+            height: chatHeight,
+            backgroundColor: null,
+            scale: SCALE,
+          });
+          const link = document.createElement("a");
+          link.download = "chat_4k.png";
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+        } catch(err) {
+          console.error(err);
+        } finally {
+          document.body.removeChild(wrapper);
+        }
+      };
+
+      function hexToRgba(hex, alpha=1){
+        const h = hex.replace("#","");
+        const r=parseInt(h.slice(0,2),16);
+        const g=parseInt(h.slice(2,4),16);
+        const b=parseInt(h.slice(4,6),16);
+        return `rgba(${r},${g},${b},${alpha})`;
+      }
+      function rgbaToHex(rgba){
+        const m = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+        if(!m) return "#ffffff";
+        const r=parseInt(m[1]).toString(16).padStart(2,"0");
+        const g=parseInt(m[2]).toString(16).padStart(2,"0");
+        const b=parseInt(m[3]).toString(16).padStart(2,"0");
+        return `#${r}${g}${b}`;
+      }
+
+      return React.createElement("div", {className: "app-root"},
+        React.createElement("div", {className:"chat-box", ref:chatRef},
+          messages.map((msg, idx) => React.createElement("div", {
+            key: idx,
+            className: "message-bubble " + msg.type,
+            style: {background: msg.type==="sender"?senderColor:receiverColor, color: msg.type==="sender"?senderTextColor:receiverTextColor},
+            onContextMenu: e => { e.preventDefault(); deleteMessage(idx);}
+          }, msg.text))
+        ),
+        React.createElement("div", {className:"controls"},
+          React.createElement("input", {
+            type:"text",
+            value: input,
+            placeholder:"Type your message...",
+            onChange: e => setInput(e.target.value),
+            onKeyDown: e => e.key==="Enter" && addMessage()
+          }),
+          React.createElement("select", {
+            value: sender,
+            onChange: e => setSender(e.target.value)
+          }, React.createElement("option",{value:"sender"},"Sender"),
+             React.createElement("option",{value:"receiver"},"Receiver")),
+          React.createElement("button", {onClick:addMessage}, "Send")
+        ),
+        React.createElement("div", {className:"bottom-actions"},
+          React.createElement("button",{className:"action-btn", onClick:downloadChat},"⬇ Download 4K"),
+          React.createElement("button",{className:"action-btn", onClick:clearChat},"🗑 Clear Chat")
+        )
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+  </script>
+</body>
+</html>
