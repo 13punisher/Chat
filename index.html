@@ -1,281 +1,265 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chat Exporter</title>
+<!DOCTYPE html>  <html lang="en">  
+<head>  
+  <meta charset="UTF-8" />  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />  
+  <title>Chat Exporter</title>  
+  <style>  
+    :root {  
+      --bg: #000000;  
+      --chat-radius: 28px;  
+      --bubble-radius: 18px;  
+      --font-sz: 12px;  
+      --gap: 8px;  
+    }  * {  
+  box-sizing: border-box;  
+}  
 
-  <!-- Import Roboto from Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+html, body {  
+  height: 100%;  
+  margin: 0;  
+  padding: 0;  
+  background: var(--bg);  
+  color: #fff;  
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;  
+  -webkit-font-smoothing: antialiased;  
+  -moz-osx-font-smoothing: grayscale;  
+  text-rendering: optimizeLegibility;  
+}  
 
-  <style>
-    :root {
-      --bg: #000000;
-      --chat-radius: 28px;
-      --bubble-radius: 18px;
-      --font-sz: 12px;
-      --gap: 8px;
-    }
+.app-root {  
+  display: flex;  
+  flex-direction: column;  
+  align-items: center;  
+  padding: 16px;  
+  min-height: 100vh;  
+  gap: var(--gap);  
+}  
 
-    * {
-      box-sizing: border-box;
-    }
+.chat-box {  
+  width: 100%;  
+  max-width: 600px;  
+  background: var(--bg);  
+  border-radius: var(--chat-radius);  
+  padding: 16px 32px;  
+  display: flex;  
+  flex-direction: column;  
+  gap: var(--gap);  
+  overflow-y: auto;  
+  word-wrap: break-word;  
+}  
 
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      background: var(--bg);
-      color: #fff;
-      font-family: "Roboto", sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      text-rendering: optimizeLegibility;
-    }
+.message-bubble {  
+  padding: 8px 12px;  
+  border-radius: var(--bubble-radius);  
+  max-width: 65%;  
+  font-size: var(--font-sz);  
+  line-height: 1.4;  
+  white-space: pre-wrap;  
+  display: inline-block;  
+}  
 
-    .app-root {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 16px;
-      min-height: 100vh;
-      gap: var(--gap);
-    }
+.sender {  
+  align-self: flex-end;  
+  text-align: right;  
+  background: rgba(255,255,255,0.12);  
+  color: #fff;  
+  background-image: linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0));  
+  margin-right: 8px;  
+}  
 
-    .chat-box {
-      width: 100%;
-      max-width: 600px;
-      background: var(--bg);
-      border-radius: var(--chat-radius);
-      padding: 16px 32px;
-      display: flex;
-      flex-direction: column;
-      gap: var(--gap);
-      overflow-y: auto;
-      word-wrap: break-word;
-    }
+.receiver {  
+  align-self: flex-start;  
+  text-align: left;  
+  background: rgba(255,255,255,0.02);  
+  color: #fff;  
+  border: 1px solid rgba(255,255,255,0.15);  
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.35);  
+  margin-left: 8px;  
+}  
 
-    .message-bubble {
-      padding: 8px 12px;
-      border-radius: var(--bubble-radius);
-      max-width: 65%;
-      font-size: var(--font-sz);
-      line-height: 1.4;
-      white-space: pre-wrap;
-      display: inline-block;
-    }
+/* Controls row */  
+.controls {  
+  width: 100%;  
+  max-width: 600px;  
+  display: flex;  
+  gap: 8px;  
+  align-items: center;  
+}  
 
-    .sender {
-      align-self: flex-end;
-      text-align: right;
-      background: rgba(255,255,255,0.12);
-      color: #fff;
-      background-image: linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0));
-      margin-right: 8px;
-    }
+.controls input {  
+  flex: 1;  
+  padding: 10px 12px;  
+  border-radius: 8px;  
+  border: none;  
+  outline: none;  
+  font-size: 14px;  
+  background: #111;  
+  color: #fff;  
+}  
 
-    .receiver {
-      align-self: flex-start;
-      text-align: left;
-      background: rgba(255,255,255,0.02);
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.15);
-      box-shadow: inset 0 -2px 0 rgba(0,0,0,0.35);
-      margin-left: 8px;
-    }
+.controls select {  
+  padding: 10px;  
+  border-radius: 8px;  
+  font-size: 14px;  
+  border: none;  
+  background: #222;  
+  color: #fff;  
+  cursor: pointer;  
+}  
 
-    /* Controls row */
-    .controls {
-      width: 100%;
-      max-width: 600px;
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
+.controls button {  
+  padding: 10px 16px;  
+  border-radius: 8px;  
+  font-size: 14px;  
+  border: none;  
+  cursor: pointer;  
+  background: #2f80ed;  
+  color: white;  
+}  
 
-    .controls input {
-      flex: 1;
-      padding: 10px 12px;
-      border-radius: 8px;
-      border: none;
-      outline: none;
-      font-size: 14px;
-      background: #111;
-      color: #fff;
-    }
+/* Bottom actions */  
+.bottom-actions {  
+  width: 100%;  
+  max-width: 600px;  
+  display: flex;  
+  gap: 8px;  
+}  
 
-    .controls select {
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 14px;
-      border: none;
-      background: #222;
-      color: #fff;
-      cursor: pointer;
-    }
+.action-btn {  
+  flex: 1;  
+  padding: 12px 14px;  
+  border-radius: 8px;  
+  border: none;  
+  cursor: pointer;  
+  font-size: 15px;  
+  font-weight: 500;  
+}  
 
-    .controls button {
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-size: 14px;
-      border: none;
-      cursor: pointer;
-      background: #2f80ed;
-      color: white;
-    }
+.download-btn {  
+  background: #00c853;  
+  color: white;  
+}  
 
-    /* Bottom actions */
-    .bottom-actions {
-      width: 100%;
-      max-width: 600px;
-      display: flex;
-      gap: 8px;
-    }
+.clear-btn {  
+  background: #d32f2f;  
+  color: white;  
+}  
 
-    .action-btn {
-      flex: 1;
-      padding: 12px 14px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-size: 15px;
-      font-weight: 500;
-    }
+@media (max-width: 500px) {  
+  .chat-box {  
+    padding: 12px 16px;  
+  }  
+  .controls {  
+    flex-wrap: wrap;  
+  }  
+  .controls input {  
+    flex: 1 1 100%;  
+  }  
+  .bottom-actions {  
+    flex-direction: column;  
+  }  
+  .action-btn {  
+    flex: 1 1 100%;  
+  }  
+}
 
-    .download-btn {
-      background: #00c853;
-      color: white;
-    }
-
-    .clear-btn {
-      background: #d32f2f;
-      color: white;
-    }
-
-    @media (max-width: 500px) {
-      .chat-box {
-        padding: 12px 16px;
-      }
-      .controls {
-        flex-wrap: wrap;
-      }
-      .controls input {
-        flex: 1 1 100%;
-      }
-      .bottom-actions {
-        flex-direction: column;
-      }
-      .action-btn {
-        flex: 1 1 100%;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div id="root"></div>
-
-  <!-- React + ReactDOM + html2canvas -->
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
-  <script type="text/javascript">
-    const { useState, useEffect, useRef } = React;
-
-    function App() {
-      const [messages, setMessages] = useState([]);
-      const [input, setInput] = useState("");
-      const [sender, setSender] = useState("sender");
-      const [senderColor, setSenderColor] = useState("rgba(255,255,255,0.12)");
-      const [receiverColor, setReceiverColor] = useState("rgba(255,255,255,0.02)");
-      const [senderTextColor, setSenderTextColor] = useState("#ffffff");
-      const [receiverTextColor, setReceiverTextColor] = useState("#ffffff");
-      const chatRef = useRef(null);
-
-      const addMessage = () => {
-        if (!input.trim()) return;
-        setMessages(prev => [...prev, { text: input.trim(), type: sender }]);
-        setInput("");
-      };
-
-      const deleteMessage = idx => setMessages(prev => prev.filter((_, i) => i !== idx));
-      const clearChat = () => setMessages([]);
-
-      useEffect(() => {
-        if(chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
-      }, [messages]);
-
-      const downloadChat = async () => {
-        const chatBox = chatRef.current;
-        if (!chatBox) return;
-        const chatWidth = chatBox.offsetWidth;
-        const chatHeight = chatBox.scrollHeight;
-        const wrapper = document.createElement("div");
-        wrapper.style.position = "absolute";
-        wrapper.style.top = "-99999px";
-        wrapper.style.left = "-99999px";
-        wrapper.style.width = chatWidth + "px";
-        wrapper.style.height = chatHeight + "px";
-        wrapper.style.background = "black";
-        wrapper.style.overflow = "visible";
-
-        const clone = chatBox.cloneNode(true);
-        clone.style.width = chatWidth + "px";
-        clone.style.overflow = "visible";
-        wrapper.appendChild(clone);
-        document.body.appendChild(wrapper);
-
-        try {
-          const SCALE = 4; // 4x scale = 4K
-          const canvas = await html2canvas(wrapper, {
-            width: chatWidth,
-            height: chatHeight,
-            backgroundColor: null,
-            scale: SCALE,
-          });
-          const link = document.createElement("a");
-          link.download = "chat_4k.png";
-          link.href = canvas.toDataURL("image/png", 1.0);
-          link.click();
-        } catch(err) {
-          console.error(err);
-        } finally {
-          document.body.removeChild(wrapper);
-        }
-      };
-
-      return React.createElement("div", {className: "app-root"},
-        React.createElement("div", {className:"chat-box", ref:chatRef},
-          messages.map((msg, idx) => React.createElement("div", {
-            key: idx,
-            className: "message-bubble " + msg.type,
-            style: {background: msg.type==="sender"?senderColor:receiverColor, color: msg.type==="sender"?senderTextColor:receiverTextColor},
-            onContextMenu: e => { e.preventDefault(); deleteMessage(idx);}
-          }, msg.text))
-        ),
-        React.createElement("div", {className:"controls"},
-          React.createElement("input", {
-            type:"text",
-            value: input,
-            placeholder:"Type your message...",
-            onChange: e => setInput(e.target.value),
-            onKeyDown: e => e.key==="Enter" && addMessage()
-          }),
-          React.createElement("select", {
-            value: sender,
-            onChange: e => setSender(e.target.value)
-          }, React.createElement("option",{value:"sender"},"Sender"),
-             React.createElement("option",{value:"receiver"},"Receiver")),
-          React.createElement("button", {onClick:addMessage}, "Send")
-        ),
-        React.createElement("div", {className:"bottom-actions"},
-          React.createElement("button",{className:"action-btn download-btn", onClick:downloadChat},"⬇ Download 4K"),
-          React.createElement("button",{className:"action-btn clear-btn", onClick:clearChat},"🗑 Clear Chat")
-        )
-      );
-    }
-
-    ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
-  </script>
-</body>
-</html>
+  </style>  
+</head>  
+<body>  
+  <div id="root"></div>    <!-- React + ReactDOM + html2canvas -->    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>    <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>    <script type="text/javascript">  
+    const { useState, useEffect, useRef } = React;  
+  
+    function App() {  
+      const [messages, setMessages] = useState([]);  
+      const [input, setInput] = useState("");  
+      const [sender, setSender] = useState("sender");  
+      const [senderColor, setSenderColor] = useState("rgba(255,255,255,0.12)");  
+      const [receiverColor, setReceiverColor] = useState("rgba(255,255,255,0.02)");  
+      const [senderTextColor, setSenderTextColor] = useState("#ffffff");  
+      const [receiverTextColor, setReceiverTextColor] = useState("#ffffff");  
+      const chatRef = useRef(null);  
+  
+      const addMessage = () => {  
+        if (!input.trim()) return;  
+        setMessages(prev => [...prev, { text: input.trim(), type: sender }]);  
+        setInput("");  
+      };  
+  
+      const deleteMessage = idx => setMessages(prev => prev.filter((_, i) => i !== idx));  
+      const clearChat = () => setMessages([]);  
+  
+      useEffect(() => {  
+        if(chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;  
+      }, [messages]);  
+  
+      const downloadChat = async () => {  
+        const chatBox = chatRef.current;  
+        if (!chatBox) return;  
+        const chatWidth = chatBox.offsetWidth;  
+        const chatHeight = chatBox.scrollHeight;  
+        const wrapper = document.createElement("div");  
+        wrapper.style.position = "absolute";  
+        wrapper.style.top = "-99999px";  
+        wrapper.style.left = "-99999px";  
+        wrapper.style.width = chatWidth + "px";  
+        wrapper.style.height = chatHeight + "px";  
+        wrapper.style.background = "black";  
+        wrapper.style.overflow = "visible";  
+  
+        const clone = chatBox.cloneNode(true);  
+        clone.style.width = chatWidth + "px";  
+        clone.style.overflow = "visible";  
+        wrapper.appendChild(clone);  
+        document.body.appendChild(wrapper);  
+  
+        try {  
+          const SCALE = 4; // 4x scale = 4K  
+          const canvas = await html2canvas(wrapper, {  
+            width: chatWidth,  
+            height: chatHeight,  
+            backgroundColor: null,  
+            scale: SCALE,  
+          });  
+          const link = document.createElement("a");  
+          link.download = "chat_4k.png";  
+          link.href = canvas.toDataURL("image/png", 1.0);  
+          link.click();  
+        } catch(err) {  
+          console.error(err);  
+        } finally {  
+          document.body.removeChild(wrapper);  
+        }  
+      };  
+  
+      return React.createElement("div", {className: "app-root"},  
+        React.createElement("div", {className:"chat-box", ref:chatRef},  
+          messages.map((msg, idx) => React.createElement("div", {  
+            key: idx,  
+            className: "message-bubble " + msg.type,  
+            style: {background: msg.type==="sender"?senderColor:receiverColor, color: msg.type==="sender"?senderTextColor:receiverTextColor},  
+            onContextMenu: e => { e.preventDefault(); deleteMessage(idx);}  
+          }, msg.text))  
+        ),  
+        React.createElement("div", {className:"controls"},  
+          React.createElement("input", {  
+            type:"text",  
+            value: input,  
+            placeholder:"Type your message...",  
+            onChange: e => setInput(e.target.value),  
+            onKeyDown: e => e.key==="Enter" && addMessage()  
+          }),  
+          React.createElement("select", {  
+            value: sender,  
+            onChange: e => setSender(e.target.value)  
+          }, React.createElement("option",{value:"sender"},"Sender"),  
+             React.createElement("option",{value:"receiver"},"Receiver")),  
+          React.createElement("button", {onClick:addMessage}, "Send")  
+        ),  
+        React.createElement("div", {className:"bottom-actions"},  
+          React.createElement("button",{className:"action-btn download-btn", onClick:downloadChat},"⬇ Download 4K"),  
+          React.createElement("button",{className:"action-btn clear-btn", onClick:clearChat},"🗑 Clear Chat")  
+        )  
+      );  
+    }  
+  
+  
